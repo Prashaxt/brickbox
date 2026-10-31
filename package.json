@@ -1,0 +1,105 @@
+{
+  "name": "brickbox",
+  "version": "0.1.0",
+  "description": "Wrap any element and give it real 3D depth. Tiny framework-free core with a React wrapper.",
+  "keywords": [
+    "3d",
+    "css",
+    "depth",
+    "extrude",
+    "tilt",
+    "react",
+    "web-component",
+    "custom-element",
+    "ui",
+    "tactile",
+    "button",
+    "card"
+  ],
+  "license": "MIT",
+  "author": "PRASHANT PRASAD",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prashaxt/brickbox.git"
+  },
+  "homepage": "https://github.com/Prashaxt/brickbox#readme",
+  "bugs": {
+    "url": "https://github.com/Prashaxt/brickbox/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "element": [
+        "./dist/element.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    },
+    "./element": {
+      "import": {
+        "types": "./dist/element.d.ts",
+        "default": "./dist/element.js"
+      },
+      "require": {
+        "types": "./dist/element.d.cts",
+        "default": "./dist/element.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "size": "node scripts/size.mjs",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tsup": "^9.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

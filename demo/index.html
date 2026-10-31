@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>brickbox demo</title>
+<style>
+  body{font:16px system-ui;margin:0;padding:48px;display:grid;gap:40px;justify-items:center;background:#e9ebf1}
+  .card{padding:28px 36px;border-radius:20px;background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff;font-weight:600}
+  .btn{font:inherit;border:0;border-radius:12px;padding:12px 22px;background:#0f766e;color:#fff;cursor:pointer}
+</style>
+<brick-box depth="32" tilt="14 22" edge-color="auto"><div class="card">Hover me</div></brick-box>
+<brick-box depth="14" press-depth="3" control="static"><button class="btn">Press me</button></brick-box>
+<!-- Serve this folder over http (for example: npx serve .) because browsers block module imports from file:// -->
+<script type="module">
+  import { defineBrickBox } from '../dist/element.js';
+  defineBrickBox();
+</script>
