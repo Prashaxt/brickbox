@@ -3,7 +3,7 @@ import type { BrickBoxInstance, BrickBoxOptions, Control, LightWord } from './ty
 
 const ATTRS = [
   'depth', 'control', 'tilt', 'max-angle', 'spring-back', 'spring-duration', 'press-depth', 'press-duration',
-  'side-color', 'shading', 'light', 'perspective', 'edge-color', 'edge-width', 'touch-scroll', 'disabled', 'tolerance',
+  'side-color', 'shading', 'light', 'perspective', 'edge-color', 'edge-width', 'touch-scroll', 'disabled', 'tolerance', 'reverse-hover', 'reverse-drag', 'ignore',
 ];
 
 function read(el: HTMLElement): BrickBoxOptions {
@@ -22,7 +22,7 @@ function read(el: HTMLElement): BrickBoxOptions {
     sideColor: g('side-color') || undefined, shading: bool('shading'),
     light: l == null ? undefined : isNaN(+l) ? (l as LightWord) : +l,
     perspective: num('perspective'), edgeColor: g('edge-color') || undefined, edgeWidth: num('edge-width'),
-    touchScroll: bool('touch-scroll'), disabled: bool('disabled'), advanced: { tolerance: num('tolerance') },
+    touchScroll: bool('touch-scroll'), reverseHover: bool('reverse-hover'), reverseDrag: bool('reverse-drag'), ignore: g('ignore') || undefined, disabled: bool('disabled'), advanced: { tolerance: num('tolerance') },
   };
 }
 

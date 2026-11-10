@@ -20,12 +20,12 @@ export interface BrickBoxProps extends BrickBoxOptions, Omit<HTMLAttributes<HTML
 export const BrickBox = forwardRef<HTMLElement, BrickBoxProps>(function BrickBox(props, ref) {
   const {
     as, children, depth, control, tilt, maxAngle, springBack, springDuration, pressDepth, pressDuration,
-    sideColor, shading, light, perspective, edgeColor, edgeWidth, touchScroll, disabled, advanced, ...rest
+    sideColor, shading, light, perspective, edgeColor, edgeWidth, touchScroll, disabled, advanced, reverseHover, reverseDrag, ignore, ...rest
   } = props;
   const Tag = (as || 'div') as ElementType;
   const options: BrickBoxOptions = {
     depth, control, tilt, maxAngle, springBack, springDuration, pressDepth, pressDuration,
-    sideColor, shading, light, perspective, edgeColor, edgeWidth, touchScroll, disabled, advanced,
+    sideColor, shading, light, perspective, edgeColor, edgeWidth, touchScroll, disabled, advanced, reverseHover, reverseDrag, ignore,
   };
   const key = JSON.stringify(options);
   const local = useRef<HTMLElement | null>(null);

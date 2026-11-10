@@ -1,4 +1,4 @@
-export type Control = 'hover' | 'drag' | 'static';
+export type Control = 'hover' | 'drag' | 'both' | 'static';
 export type LightWord = 'top' | 'top-right' | 'right' | 'bottom-right' | 'bottom' | 'bottom-left' | 'left' | 'top-left';
 
 /** Resting angle in degrees. Positive x shows the bottom wall, positive y shows the right wall. */
@@ -18,7 +18,10 @@ export interface Advanced {
 export interface BrickBoxOptions {
   /** Extrusion length. A number is px, a string is any CSS length. @default 24 */
   depth?: number | string;
-  /** How the box reacts to the pointer. On touch, "hover" behaves as drag. @default "hover" */
+  /**
+   * How the box reacts to the pointer. "both" tilts on hover until you grab it, drag takes over while held,
+   * then hover resumes. On touch, "hover" and "both" behave as drag. @default "hover"
+   */
   control?: Control;
   /** Resting angle in degrees. @default { x: 14, y: 22 } */
   tilt?: Tilt;
@@ -44,6 +47,15 @@ export interface BrickBoxOptions {
   edgeColor?: 'none' | 'auto' | (string & {});
   /** Edge line width in px. @default 1 */
   edgeWidth?: number;
+  /** Flip the hover tilt direction. @default false */
+  reverseHover?: boolean;
+  /** Flip the drag direction. @default false */
+  reverseDrag?: boolean;
+  /**
+   * CSS selector for areas inside the element that ignore hover, drag and press, such as a knob.
+   * Elements with a data-brickbox-ignore attribute are ignored too.
+   */
+  ignore?: string;
   /** Touch only: true lets vertical swipes scroll the page (only horizontal drags tilt). @default true */
   touchScroll?: boolean;
   /** Render the child normally with no 3D. @default false */
