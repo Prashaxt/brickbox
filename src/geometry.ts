@@ -275,3 +275,45 @@ export function clipToBox(P: Pt[], w: number, h: number): Pt[] {
   }
   return out;
 }
+
+/** Perpendicular distance from point p to the line through a and c. */
+function lineDev(p: Pt, a: Pt, c: Pt): number {
+  const dx = c[0] - a[0], dy = c[1] - a[1], L = Math.hypot(dx, dy);
+  return L < 1e-9 ? Math.hypot(p[0] - a[0], p[1] - a[1]) : Math.abs(dx * (p[1] - a[1]) - dy * (p[0] - a[0])) / L;
+}
+
+/**
+ * Sample a closed curve, given as a function of distance `t` along it (0 to `total`), into a polygon.
+ * Samples are spread evenly first, then added only where the curve bends, so a long gentle curve costs
+ * far fewer calls to `at` than one point per pixel. Every wall stays within `tol` of the curve.
+ */
+export function flatten(total: number, at: (t: number) => Pt, tol: number, step = 8): Pt[] {
+  const n = Math.max(8, Math.ceil(total / step));
+  const T: number[] = [], P: Pt[] = [];
+  for (let i = 0; i < n; i++) { T.push((total * i) / n); P.push(at(T[i])); }
+  const out: Pt[] = [];
+  const refine = (t0: number, p0: Pt, t1: number, p1: Pt, depth: number) => {
+    const tm = (t0 + t1) / 2, pm = at(tm);
+    if (depth < 5 && lineDev(pm, p0, p1) > tol * 0.5) {
+      refine(t0, p0, tm, pm, depth + 1);
+      out.push(pm);
+      refine(tm, pm, t1, p1, depth + 1);
+    }
+  };
+  const lim = tol * 0.5;
+  for (let i = 0; i < n; i++) {
+    const a = P[(i + n - 1) % n], b = P[i], c = P[(i + 1) % n], d = P[(i + 2) % n];
+    out.push(b);
+    // Three evenly spaced samples show how sharply the curve bends: a chord sagitta is a quarter of that deviation.
+    const e = Math.max(lineDev(b, a, c), lineDev(c, b, d)) / 4, t0 = T[i], t1 = i + 1 === n ? total : T[i + 1];
+    if (e <= lim) continue;
+    // A sagitta shrinks with the square of the piece length, so a smooth bend tells us how many pieces it needs.
+    // If it needs more than a few, it is a tight bend or a corner, so bisect it and test as we go.
+    const k = Math.ceil(Math.sqrt((e * 1.3) / lim));
+    // A corner can sit between samples and look like a mild bend, but the chords either side of it turn sharply.
+    const turn = Math.abs(Math.atan2((b[0] - a[0]) * (d[1] - c[1]) - (b[1] - a[1]) * (d[0] - c[0]), (b[0] - a[0]) * (d[0] - c[0]) + (b[1] - a[1]) * (d[1] - c[1])));
+    if (k > 4 || turn > 0.5) refine(t0, b, t1, c, 0);
+    else for (let j = 1; j < k; j++) out.push(at(t0 + ((t1 - t0) * j) / k));
+  }
+  return out;
+}
