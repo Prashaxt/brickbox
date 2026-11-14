@@ -1,9 +1,9 @@
-import { brickbox } from './core';
+import { brickbox, devWarn } from './core';
 import type { BrickBoxInstance, BrickBoxOptions, Control, LightWord } from './types';
 
 const ATTRS = [
-  'depth', 'control', 'tilt', 'max-angle', 'spring-back', 'spring-duration', 'press-depth', 'press-duration',
-  'side-color', 'shading', 'light', 'perspective', 'edge-color', 'edge-width', 'touch-scroll', 'disabled', 'tolerance', 'reverse-hover', 'reverse-drag', 'ignore',
+  'depth', 'control', 'tilt', 'max-angle', 'spring-back', 'spring-duration', 'press-sink', 'press-duration',
+  'side-color', 'shading', 'light', 'perspective', 'edge-color', 'edge-width', 'touch-scroll', 'disabled', 'tolerance', 'reverse-hover', 'reverse-drag', 'ignore', 'shadow',
 ];
 
 function read(el: HTMLElement): BrickBoxOptions {
@@ -15,10 +15,11 @@ function read(el: HTMLElement): BrickBoxOptions {
   let tilt: BrickBoxOptions['tilt'];
   if (t) { const [x, y] = t.split(/[ ,]+/).map(Number); tilt = { x, y }; }
   const l = g('light');
+  if (g('press-depth') != null) devWarn('press-depth was renamed to press-sink in 0.3.0. It is now a percent of depth (0 to 99) and press-depth is ignored.');
   return {
     depth: len('depth'), control: (g('control') as Control) || undefined, tilt, maxAngle: num('max-angle'),
     springBack: bool('spring-back'), springDuration: num('spring-duration'),
-    pressDepth: len('press-depth'), pressDuration: num('press-duration'),
+    pressSink: len('press-sink'), pressDuration: num('press-duration'), shadow: (g('shadow') as BrickBoxOptions['shadow']) || undefined,
     sideColor: g('side-color') || undefined, shading: bool('shading'),
     light: l == null ? undefined : isNaN(+l) ? (l as LightWord) : +l,
     perspective: num('perspective'), edgeColor: g('edge-color') || undefined, edgeWidth: num('edge-width'),
