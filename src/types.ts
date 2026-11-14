@@ -15,6 +15,13 @@ export interface Advanced {
   cull?: boolean;
 }
 
+export type ShadowMode = 'none' | 'followLight' | 'bottom';
+/**
+ * A shadow mode, optionally followed by `blur spread color` like CSS box-shadow, for example
+ * `"followLight 12px 2px rgba(0,0,0,.4)"`. Anything you leave out is chosen from `depth`.
+ */
+export type Shadow = ShadowMode | `${Exclude<ShadowMode, 'none'>} ${string}`;
+
 export interface BrickBoxOptions {
   /** Extrusion length. A number is px, a string is any CSS length. @default 24 */
   depth?: number | string;
@@ -31,8 +38,11 @@ export interface BrickBoxOptions {
   springBack?: boolean;
   /** Length of the return animation in ms. @default 700 */
   springDuration?: number;
-  /** Depth while pressed. Defaults to `depth`, which means no sinking. */
-  pressDepth?: number | string;
+  /**
+   * How far the box sinks when pressed, as a percent of `depth`: 0 is no press, 99 is almost flat.
+   * A number or a string such as "80%". Above 99 is treated as 99. Unset means no press.
+   */
+  pressSink?: number | string;
   /** Length of the press transition in ms. @default 150 */
   pressDuration?: number;
   /** "match" follows the element's background, or pass one CSS colour. @default "match" */
@@ -41,6 +51,12 @@ export interface BrickBoxOptions {
   shading?: boolean;
   /** Where the light comes from: a word, or degrees (0 is top, clockwise). @default "top-left" */
   light?: LightWord | number;
+  /**
+   * A soft shadow of the box's real silhouette. "followLight" casts it away from `light` (any direction),
+   * "bottom" casts it straight down, "none" turns it off. Add `blur spread color` after the mode to tune it.
+   * The distance comes from `depth`. @default "none"
+   */
+  shadow?: Shadow;
   /** Perspective distance in px. @default 1000 */
   perspective?: number;
   /** Lines on the back rim and sharp corners. "auto" is a darker line. @default "none" */
