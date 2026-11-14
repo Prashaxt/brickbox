@@ -1,6 +1,6 @@
 {
   "name": "brickbox",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Wrap any element and give it real 3D depth. Tiny framework-free core with a React wrapper.",
   "keywords": [
     "3d",
