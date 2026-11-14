@@ -7,8 +7,8 @@
   .card{padding:28px 36px;border-radius:20px;background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff;font-weight:600}
   .btn{font:inherit;border:0;border-radius:12px;padding:12px 22px;background:#0f766e;color:#fff;cursor:pointer}
 </style>
-<brick-box depth="32" tilt="14 22" edge-color="auto"><div class="card">Hover me</div></brick-box>
-<brick-box depth="14" press-depth="3" control="static"><button class="btn">Press me</button></brick-box>
+<brick-box depth="32" tilt="14 22" edge-color="auto" shadow="followLight"><div class="card">Hover me</div></brick-box>
+<brick-box depth="14" press-sink="80" control="static" shadow="bottom 10px 0 rgba(0,0,0,.3)"><button class="btn">Press me</button></brick-box>
 <style>
   .hex{padding:34px 40px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;font-weight:600;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
   .blob{width:140px;height:120px;display:flex;align-items:center;justify-content:center;background:#f43f5e;color:#fff;font-weight:600;clip-path:path("M60 0C100 0 140 20 140 60S100 120 60 120 0 100 0 60 20 0 60 0Z")}
@@ -17,7 +17,7 @@
   .knob{width:54px;height:54px;border-radius:50%;background:#f59e0b;cursor:pointer}
 </style>
 <brick-box depth="26" control="both" edge-color="auto"><div class="hex">Hexagon (clip-path)</div></brick-box>
-<brick-box depth="26"><div class="blob">Blob (path)</div></brick-box>
+<brick-box depth="26" shadow="followLight 14px 2px rgba(0,0,0,.35)"><div class="blob">Blob (path)</div></brick-box>
 <brick-box depth="22" control="both" reverse-hover reverse-drag><div class="star">Star</div></brick-box>
 <brick-box depth="24" control="both"><div class="panel">Panel with a knob <div class="knob" data-brickbox-ignore onclick="this.style.transform='rotate('+((this._r=(this._r||0)+40))+'deg)'"></div></div></brick-box>
 <!-- Serve this folder over http (for example: npx serve .) because browsers block module imports from file:// -->
