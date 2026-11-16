@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0
+
+New:
+
+- Nesting. Give a box a `lift` and it becomes a part standing on its parent brickbox, in the same 3D scene, so a button can stand out from a tilting panel. `lift` is how high the part's base sits above the parent's face (0 sits on it), and `depth` is the part's height. A nested box is static, untilted and shaded by default, and it uses its parent's `light`. It uses the browser's own hit test, so it works inside a rotated parent. Pressing it presses only it and the parent does not start a drag, while hovering over it still tilts the parent. Its shadow falls on the parent's face. A box without `lift` is untouched, so nothing changes for existing pages. In development, brickbox names any element between the part and its parent that flattens the 3D scene (`overflow`, `opacity`, `filter`, `clip-path`, `mask`, `isolation`, `mix-blend-mode`, `contain: paint`).
+- `sideColor: "none"` (or `"transparent"`) builds no walls at all, which suits a box that only tilts its children.
+- `advanced.trackColor` (default on) turns the colour and shape tracking below off.
+
+Changed:
+
+- The walls follow the face as its colour or shape changes, with no call to `update()`. brickbox re-reads the face after pointer, focus, class, style and theme changes, and frame by frame only while a colour or shape transition or a finite animation runs. Nothing runs while the box is idle. A colour-only change repaints the existing wall strips without rebuilding them. `update({})` still refreshes the walls.
+- The shadow follows the box as it tilts, hovers, drags and presses. It is now the box's face projected along the light onto a plane behind it, in the same 3D scene, so it gets the same perspective. A pressed box casts a tighter shadow.
+- `clip-path` accepts `calc()`, `min()`, `max()`, `clamp()` and units such as `rem` and `vw` in `polygon()`, `inset()`, `circle()` and `ellipse()`. The browser evaluates them. `url()` and `shape()` are still not supported.
+- The depth warning in development is shown once.
+- The core grows by about 2.2 KB gzipped.
+
 ## 0.3.0
 
 Breaking:
