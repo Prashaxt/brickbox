@@ -187,11 +187,33 @@ function exp4<T>(a: T[]): T[] {
   return a.length === 1 ? [a[0], a[0], a[0], a[0]] : a.length === 2 ? [a[0], a[1], a[0], a[1]] : a.length === 3 ? [a[0], a[1], a[2], a[1]] : a;
 }
 
+/** Split on whitespace, but not inside parentheses, so `calc(100% - 10px)` stays one token. */
+export function splitWs(s: string): string[] {
+  const out: string[] = [];
+  let depth = 0, cur = '';
+  for (const ch of s.trim()) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (/\s/.test(ch) && !depth) { if (cur) out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+/** Turns a length expression such as `calc(100% - 10px)` into px, given what 100% means here. Returns NaN if it can't. */
+export type LengthResolver = (token: string, ref: number) => number;
+
 /**
  * Turn a computed clip-path (polygon, circle, ellipse or inset) into polygons in the element's box.
- * Returns null for anything unsupported, such as calc(), url() or shape(). path() is handled in core.
+ * Plain px and % values are read directly. Anything else, such as calc(), min(), max() or clamp(), goes to `resolve`.
+ * Returns null for anything unsupported, such as url() or shape(). path() is handled in core.
  */
-export function clipOutline(clip: string, w: number, h: number, tol: number): Pt[][] | null {
+export function clipOutline(clip: string, w: number, h: number, tol: number, resolve?: LengthResolver): Pt[][] | null {
+  const L = (t: string | undefined, ref: number): number => {
+    const v = len(t, ref);
+    return isNaN(v) && t && resolve ? resolve(t, ref) : v;
+  };
   const m = clip.trim().match(/^(polygon|circle|ellipse|inset)\(([\s\S]*)\)$/);
   if (!m) return null;
   const arg = m[2].trim();
@@ -200,7 +222,7 @@ export function clipOutline(clip: string, w: number, h: number, tol: number): Pt
     if (/^(nonzero|evenodd)$/.test(parts[0])) parts.shift();
     const P: Pt[] = [];
     for (const p of parts) {
-      const xy = p.trim().split(/\s+/), x = len(xy[0], w), y = len(xy[1], h);
+      const xy = splitWs(p), x = L(xy[0], w), y = L(xy[1], h);
       if (xy.length !== 2 || isNaN(x) || isNaN(y)) return null;
       P.push([x, y]);
     }
@@ -208,36 +230,36 @@ export function clipOutline(clip: string, w: number, h: number, tol: number): Pt
   }
   if (m[1] === 'inset') {
     const [box, round] = arg.split(/\s+round\s+/);
-    const iv = box.trim().split(/\s+/);
+    const iv = splitWs(box);
     if (iv.length > 4) return null;
-    const e = exp4(iv), top = len(e[0], h), right = len(e[1], w), bottom = len(e[2], h), left = len(e[3], w);
+    const e = exp4(iv), top = L(e[0], h), right = L(e[1], w), bottom = L(e[2], h), left = L(e[3], w);
     const iw = w - left - right, ih = h - top - bottom;
     if ([top, right, bottom, left].some(isNaN) || !(iw > 0) || !(ih > 0)) return null;
     let Rx = [0, 0, 0, 0], Ry = [0, 0, 0, 0];
     if (round) {
       const [hs, vs] = round.split('/');
-      const hx = hs.trim().split(/\s+/), vy = (vs ?? hs).trim().split(/\s+/);
+      const hx = splitWs(hs), vy = splitWs(vs ?? hs);
       if (hx.length > 4 || vy.length > 4) return null;
-      Rx = exp4(hx).map((t) => len(t, iw));
-      Ry = exp4(vy).map((t) => len(t, ih));
+      Rx = exp4(hx).map((t) => L(t, iw));
+      Ry = exp4(vy).map((t) => L(t, ih));
       if ([...Rx, ...Ry].some(isNaN)) return null;
     }
     const [fx, fy] = fitRadii(Rx, Ry, iw, ih);
     return [outline(iw, ih, fx, tol, fy).map(([x, y]): Pt => [x + left, y + top])];
   }
   const [shape, pos] = arg.split(/\s+at\s+/);
-  const c = (pos || 'center center').trim().split(/\s+/).map((t) => POS[t] ?? t);
-  const cx = len(c[0], w), cy = len(c[1] ?? '50%', h), t = shape.trim();
+  const c = splitWs(pos || 'center center').map((t) => POS[t] ?? t);
+  const cx = L(c[0], w), cy = L(c[1] ?? '50%', h), t = shape.trim();
   if (isNaN(cx) || isNaN(cy)) return null;
   if (m[1] === 'circle') {
     const r = t === '' || t === 'closest-side' ? Math.min(cx, w - cx, cy, h - cy)
       : t === 'farthest-side' ? Math.max(cx, w - cx, cy, h - cy)
-      : len(t, Math.sqrt((w * w + h * h) / 2));
+      : L(t, Math.sqrt((w * w + h * h) / 2));
     return r > 0 ? [ellipsePts(cx, cy, r, r, tol)] : null;
   }
-  const [tx, ty] = t ? t.split(/\s+/) : ['closest-side', 'closest-side'];
-  const rx = tx === 'closest-side' ? Math.min(cx, w - cx) : tx === 'farthest-side' ? Math.max(cx, w - cx) : len(tx, w);
-  const ry = ty === 'closest-side' ? Math.min(cy, h - cy) : ty === 'farthest-side' ? Math.max(cy, h - cy) : len(ty, h);
+  const [tx, ty] = t ? splitWs(t) : ['closest-side', 'closest-side'];
+  const rx = tx === 'closest-side' ? Math.min(cx, w - cx) : tx === 'farthest-side' ? Math.max(cx, w - cx) : L(tx, w);
+  const ry = ty === 'closest-side' ? Math.min(cy, h - cy) : ty === 'farthest-side' ? Math.max(cy, h - cy) : L(ty, h);
   return rx > 0 && ry > 0 ? [ellipsePts(cx, cy, rx, ry, tol)] : null;
 }
 
