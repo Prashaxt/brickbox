@@ -1,0 +1,508 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>brickbox 0.4.0 test page</title>
+<style>
+  :root { --ink:#0F0F14; --cream:#FBF6EA; --muted:#6B665C; --blue:#0072E3; --green:#00AA3C; --red:#EA3737; --orange:#FF6100; --purple:#AB54F7; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:32px 40px 120px; background:var(--cream); color:var(--ink); font:15px/1.5 system-ui, sans-serif; }
+  h1 { margin:0 0 4px; font-size:28px; }
+  h2 { margin:56px 0 4px; font-size:21px; }
+  p.note { margin:0 0 18px; max-width:780px; color:var(--muted); }
+  code { background:rgba(15,15,20,.07); padding:1px 5px; border-radius:4px; font-size:13px; }
+  .row { display:flex; flex-wrap:wrap; gap:44px 40px; align-items:flex-start; }
+  .item { display:grid; gap:10px; justify-items:center; text-align:center; font-size:13px; max-width:230px; }
+  .live { font:12px ui-monospace, Menlo, Consolas, monospace; background:var(--ink); color:#FBF6EA; padding:4px 8px; border-radius:6px; min-height:24px; }
+  .card { color:#fff; font-weight:700; border-radius:20px; padding:18px 22px; }
+  .blue   { background:linear-gradient(135deg, rgb(60,150,255), rgb(0,114,227)); }
+  .green  { background:linear-gradient(135deg, rgb(40,200,100), rgb(0,170,60)); }
+  .orange { background:linear-gradient(135deg, rgb(255,142,10), rgb(255,97,0)); color:#0F0F14; }
+  .purple { background:linear-gradient(135deg, rgb(199,157,252), rgb(171,84,247)); }
+  .red    { background:linear-gradient(135deg, rgb(255,120,100), rgb(234,55,55)); }
+  .text-card { width:260px; font-weight:400; line-height:1.45; }
+  .text-card b { display:block; margin-bottom:6px; }
+  input.field { margin-top:10px; width:100%; padding:6px 8px; border-radius:8px; border:0; font:inherit; }
+  table { border-collapse:collapse; width:100%; max-width:980px; background:#fff; border-radius:12px; overflow:hidden; }
+  td, th { padding:7px 12px; text-align:left; border-bottom:1px solid #eee; font-size:13px; vertical-align:top; }
+  th { background:var(--ink); color:#FBF6EA; }
+  .pass { color:#00873a; font-weight:700; } .fail { color:var(--red); font-weight:700; } .info { color:var(--blue); font-weight:700; }
+  #summary { font-size:18px; font-weight:700; margin:0 0 12px; }
+  button, select { font:inherit; padding:7px 14px; border-radius:10px; border:2px solid var(--ink); background:#fff; cursor:pointer; }
+  button.primary { background:var(--ink); color:#FBF6EA; }
+  .controls { display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; margin:0 0 22px; }
+  .controls label { display:grid; gap:2px; font-size:12px; color:var(--muted); }
+  .controls input[type=text], .controls input[type=number] { padding:6px 8px; border-radius:8px; border:2px solid var(--ink); font:inherit; width:130px; }
+  pre { background:var(--ink); color:#FBF6EA; padding:12px 14px; border-radius:10px; min-height:50px; max-width:780px; white-space:pre-wrap; font-size:12.5px; }
+  #far-status { position:fixed; right:16px; bottom:16px; z-index:20; font:13px ui-monospace, Menlo, Consolas, monospace; background:var(--ink); color:#FBF6EA; padding:10px 14px; border-radius:10px; }
+  .card.tk-red { background: rgb(234,55,55); }
+  .tk-tr { transition: background-color .4s linear; } .tk-a { background: rgb(0,114,227); } .tk-a.tk-b { background: rgb(0,170,60); }
+  .tk-hv { background: rgb(0,114,227); } .tk-hv:hover { background: rgb(0,170,60); }
+  .tk-hvt { background: rgb(0,114,227); transition: background-color .4s linear; } .tk-hvt:hover { background: rgb(0,170,60); }
+  html.tk-dark .tk-th { background: rgb(40,40,60); } .tk-th { background: rgb(255,178,0); }
+  .tk-round { border-radius: 60px !important; }
+  .key { color:#0F0F14; font-weight:700; display:grid; place-items:center; border-radius:14px; background:linear-gradient(135deg, rgb(255,142,10), rgb(255,97,0)); user-select:none; font-size:13px; }
+  .key.round { border-radius:50%; background:linear-gradient(135deg, rgb(60,150,255), rgb(0,114,227)); color:#fff; }
+  #spacer { height:2600px; display:grid; place-items:start; padding-top:40px; color:var(--muted); }
+</style>
+
+<h1>brickbox 0.4.0 test page</h1>
+<p class="note">Part 1 runs by itself when the page loads. Parts 2 to 10 need your mouse. Serve the repo over http and build first, because this page imports from <code>../dist/</code>: run <code>npm run build</code>, then <code>npx serve .</code>, then open <code>/demo/test-0.4.0.html</code>.</p>
+
+<h2>1. Automatic checks</h2>
+<p class="note">These press, drag and rebuild real boxes with synthetic pointer events and read the DOM. Timings depend on your machine.</p>
+<p id="summary">Running…</p>
+<p class="controls"><button class="primary" id="rerun">Run the checks again</button></p>
+<table><thead><tr><th style="width:42%">Check</th><th style="width:9%">Result</th><th>What it saw</th></tr></thead><tbody id="results"></tbody></table>
+<div id="lab" style="position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none"></div>
+
+<h2>2. pressSink</h2>
+<p class="note">Press and hold each card. The readout shows the value brickbox sets (<code>--bb-p</code>, the share of depth the box keeps while pressed) and the depth that leaves. Depth is 40px. A card with no <code>pressSink</code> must not sink. 100 and anything above counts as 99. Release to see it come back.</p>
+<div class="row" id="press"></div>
+
+<h2>3. shadow</h2>
+<p class="note">Direction follows <code>light</code>: light from the top-left casts to the bottom-right, from the right casts to the left. The donut's shadow must show through its hole. Hover moves nothing here, so you are looking at the shadows themselves.</p>
+<div class="row" id="shadows"></div>
+<h3 style="margin:36px 0 10px">Playground</h3>
+<div class="controls" id="pg-controls">
+  <label>shape<select id="pg-shape"><option>card</option><option>donut</option><option>heart</option></select></label>
+  <label>mode<select id="pg-mode"><option>followLight</option><option>bottom</option><option>none</option></select></label>
+  <label>blur (px)<input type="number" id="pg-blur" value="" placeholder="auto" min="0"></label>
+  <label>spread (px)<input type="number" id="pg-spread" value="" placeholder="0"></label>
+  <label>colour<input type="text" id="pg-color" placeholder="rgba(0,0,0,.35)"></label>
+  <label>light (deg) <span id="pg-light-v">315</span><input type="range" id="pg-light" min="0" max="360" value="315"></label>
+  <label>depth (px) <span id="pg-depth-v">36</span><input type="range" id="pg-depth" min="8" max="80" value="36"></label>
+</div>
+<div class="row"><div id="pg-stage" style="min-height:230px;padding:30px 60px"></div><pre id="pg-out" style="min-width:300px"></pre></div>
+
+<h2>4. Dragging must not select text</h2>
+<p class="note">Press and drag across the text in each card, including past the card edge. In <code>drag</code> and <code>both</code>, the readout must show <code>userSelect: none</code> while you hold, and no text may highlight. In <code>hover</code> a mouse doesn't drag, so selecting text works normally. Click into an input: it must still take focus and typing in every card.</p>
+<div class="row" id="select"></div>
+
+<h2>5. Performance</h2>
+<p class="note">Builds 30 donuts (about 96 wall strips each) off screen and times it. Identical donuts share one sampling. Different ones each sample their own path. 0.2.0 took about 2.6 s for the identical case and about 2.7 s per <code>update({})</code> on this kind of page.</p>
+<p class="controls"><button class="primary" id="perf-run">Run the performance test</button></p>
+<pre id="perf-out">Not run yet.</pre>
+
+<h2>6. Custom element</h2>
+<p class="note">Edit the attributes and watch the box update. <code>press-sink</code> is a percent (0 to 99). The old <code>press-depth</code> attribute is ignored in 0.3.0.</p>
+<div class="controls">
+  <label>shadow<input type="text" id="el-shadow" value="followLight 12px 2px rgba(0,0,0,.35)" style="width:280px"></label>
+  <label>press-sink<input type="number" id="el-press" value="70" min="0" max="120"></label>
+  <label>depth<input type="number" id="el-depth" value="36" min="8" max="80"></label>
+  <label>control<select id="el-control"><option>both</option><option>hover</option><option>drag</option><option>static</option></select></label>
+</div>
+<div style="padding:30px 60px"><brick-box id="el" depth="36" control="both" press-sink="70" shadow="followLight 12px 2px rgba(0,0,0,.35)"><div class="card purple" style="width:260px">A &lt;brick-box&gt; with attributes</div></brick-box></div>
+
+<h2>7. Colour tracking</h2>
+<p class="note">The walls follow the face as its colour changes, with no call to <code>update()</code>. Watch the side walls, not only the face. The second card changes on <code>:hover</code> instantly, the third with a 0.4 s transition (the walls should fade along with it), and the last follows a class on &lt;html&gt;.</p>
+<div class="controls"><button id="tk-class">Toggle a class on the first card</button><button id="tk-theme">Toggle the theme class on &lt;html&gt;</button></div>
+<div class="row" id="tracking"></div>
+
+<h2>8. Shapes with calc()</h2>
+<p class="note">The walls must follow every notch and curve. Before 0.4.0 these fell back to a plain rounded rectangle.</p>
+<div class="row" id="calcs"></div>
+
+<h2>9. Nesting with lift</h2>
+<p class="note">A small remote. The body tilts with the pointer and rotates when you drag it. The keys are nested boxes with <code>lift</code>: press one and it sinks, the counter goes up, and the body must <b>not</b> drag. Hover over the keys and the body keeps tilting. GO sits on top of OK with <code>lift: 12</code>. Their shadows fall on the body's face.</p>
+<div class="row"><div id="remote-stage" style="padding:30px 80px"></div><pre id="remote-out" style="min-width:260px"></pre></div>
+
+<h2>10. A box far below the screen</h2>
+<p class="note">Scroll down. The box at the bottom waits to build its walls until you get within about 300px of it. The chip at the bottom right counts its wall strips: 0 before, more than 0 after.</p>
+<div id="spacer"><div id="far-slot">(scroll)</div></div>
+<div id="far-status">far box: waiting…</div>
+
+<script type="module">
+  import { brickbox } from '../dist/index.js';
+  import { defineBrickBox } from '../dist/element.js';
+  defineBrickBox();
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const DONUT = "path(evenodd,'M5 85 A80 80 0 1 0 165 85 A80 80 0 1 0 5 85 Z M55 85 A30 30 0 1 0 115 85 A30 30 0 1 0 55 85 Z')";
+  const HEART = "path('M85 160 C20 105 0 50 40 25 C65 10 85 30 85 45 C85 30 105 10 130 25 C170 50 150 105 85 160 Z')";
+  const SHAPES = {
+    card: '<div class="card blue" style="width:150px;height:96px">Card</div>',
+    donut: `<div style="width:170px;height:170px;background:rgb(255,97,0);clip-path:${DONUT}"></div>`,
+    heart: `<div style="width:170px;height:170px;background:rgb(234,55,55);clip-path:${HEART}"></div>`,
+  };
+  const donutR = (r) => `<div style="width:170px;height:170px;background:rgb(0,114,227);clip-path:path(evenodd,'M${85 - r} 85 A${r} ${r} 0 1 0 ${85 + r} 85 A${r} ${r} 0 1 0 ${85 - r} 85 Z M55 85 A30 30 0 1 0 115 85 A30 30 0 1 0 55 85 Z')"></div>`;
+
+  /** Wrap `html` in a new box inside `parent`. */
+  function make(parent, html, opts = {}) {
+    const wrap = document.createElement('div');
+    wrap.style.display = 'inline-block';
+    wrap.innerHTML = html;
+    parent.appendChild(wrap);
+    const child = wrap.firstElementChild; // grab it before brickbox builds its structure around it
+    const box = brickbox(wrap, { depth: 30, control: 'static', ...opts });
+    return { wrap, child, box, remove() { box.destroy(); wrap.remove(); } };
+  }
+  const sinkOf = (w) => $('[data-bb=sink]', w);
+  const pv = (w) => sinkOf(w).style.getPropertyValue('--bb-p');
+  const strips = (w) => w.querySelectorAll('[data-bb=walls] i').length;
+  const shadowOf = (w) => $('[data-bb=shadow]', w);
+  const nums = (s) => (s.match(/-?\d+\.?\d*(?:e-?\d+)?/g) || []).map(Number);
+  const shift = (w) => { const m = shadowOf(w)?.style.transform.match(/matrix\(([^)]*)\)/); if (!m) return null; const n = m[1].split(',').map(Number); return [n[4], n[5]]; };
+  const baseRgb = (el) => ((el?.style.background || '').match(/linear-gradient\(rgb\((\d+), (\d+), (\d+)\)/) || []).slice(1).map(Number);
+  const flat = { x: 0, y: 0 };
+  const fire = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: 'mouse', pointerId: 1, button: 0, buttons: type === 'pointerup' ? 0 : 1 }));
+  const centre = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+  const press = async (w, target = w) => { const [x, y] = centre(target); fire(target, 'pointerdown', x, y); const v = pv(w); fire(window, 'pointerup', x, y); return v; };
+
+  /* ------------------------------------------------------------ 1. automatic checks */
+  const lab = $('#lab');
+  async function runChecks() {
+    const rows = [];
+    const check = async (name, fn) => {
+      try { const r = await fn(); rows.push({ name, state: r.info ? 'info' : r.ok ? 'pass' : 'fail', detail: r.detail }); }
+      catch (e) { rows.push({ name, state: 'fail', detail: 'threw: ' + e.message }); }
+    };
+
+    await check('pressSink: unset means no press', async () => { const t = make(lab, SHAPES.card, { depth: 40 }); const v = await press(t.wrap); t.remove(); return { ok: v === '1', detail: `--bb-p = ${v} (want 1)` }; });
+    await check('pressSink: 50, "80%", 100 and 250', async () => {
+      const got = [];
+      for (const s of [50, '80%', 100, 250]) { const t = make(lab, SHAPES.card, { depth: 40, pressSink: s }); got.push(await press(t.wrap)); t.remove(); }
+      const want = [0.5, 0.2, 0.01, 0.01];
+      return { ok: got.every((v, i) => Math.abs(parseFloat(v) - want[i]) < 1e-6), detail: `got ${got.map((v) => +parseFloat(v).toFixed(4)).join(', ')} (want ${want.join(', ')})` };
+    });
+    await check('pressDepth is gone (ignored, no press)', async () => { const t = make(lab, SHAPES.card, { depth: 40, pressDepth: 10 }); const v = await press(t.wrap); t.remove(); return { ok: v === '1', detail: `--bb-p = ${v} (want 1)` }; });
+
+    await check('shadow: none adds nothing', async () => { const t = make(lab, SHAPES.card); const ok = !shadowOf(t.wrap); t.remove(); return { ok, detail: ok ? 'no shadow element' : 'a shadow element exists' }; });
+    await check('shadow: followLight, light top-left, casts bottom-right', async () => { const t = make(lab, SHAPES.card, { shadow: 'followLight', tilt: flat }); const s = shift(t.wrap); t.remove(); return { ok: !!s && s[0] > 1 && s[1] > 1 && Math.abs(s[0] - s[1]) < 0.01, detail: `offset ${s?.map((n) => n.toFixed(1))}` }; });
+    await check('shadow: followLight, light "right", casts left', async () => { const t = make(lab, SHAPES.card, { shadow: 'followLight', light: 'right', tilt: flat }); const s = shift(t.wrap); t.remove(); return { ok: !!s && s[0] < -1 && Math.abs(s[1]) < 0.01, detail: `offset ${s?.map((n) => n.toFixed(1))}` }; });
+    await check('shadow: followLight, light 30 deg, casts lower-left', async () => { const t = make(lab, SHAPES.card, { shadow: 'followLight', light: 30, tilt: flat }); const s = shift(t.wrap); t.remove(); return { ok: !!s && s[0] < -1 && s[1] > 1, detail: `offset ${s?.map((n) => n.toFixed(1))}` }; });
+    await check('shadow: bottom is straight down whatever the light', async () => { const t = make(lab, SHAPES.card, { shadow: 'bottom', light: 90, tilt: flat }); const s = shift(t.wrap); t.remove(); return { ok: !!s && Math.abs(s[0]) < 0.01 && s[1] > 1, detail: `offset ${s?.map((n) => n.toFixed(1))}` }; });
+    await check('shadow: distance grows with depth', async () => { const a = make(lab, SHAPES.card, { shadow: 'bottom', depth: 20, tilt: flat }); const b = make(lab, SHAPES.card, { shadow: 'bottom', depth: 60, tilt: flat }); const da = shift(a.wrap)?.[1], db = shift(b.wrap)?.[1]; a.remove(); b.remove(); return { ok: db > da, detail: `depth 20 casts ${da?.toFixed(1)}px, depth 60 casts ${db?.toFixed(1)}px` }; });
+    await check('shadow: positive spread grows, negative shrinks', async () => {
+      const a = make(lab, SHAPES.card, { shadow: 'bottom 8px 4px red' }), b = make(lab, SHAPES.card, { shadow: 'bottom 8px -4px red' });
+      const oa = shadowOf(a.wrap)?.querySelector('feMorphology')?.getAttribute('operator'), ob = shadowOf(b.wrap)?.querySelector('feMorphology')?.getAttribute('operator');
+      a.remove(); b.remove(); return { ok: oa === 'dilate' && ob === 'erode', detail: `+4 gives ${oa}, -4 gives ${ob}` };
+    });
+    await check('shadow: colour is applied', async () => { const t = make(lab, SHAPES.card, { shadow: 'bottom 6px 0 #0a84ff' }); const f = shadowOf(t.wrap)?.querySelector('path')?.getAttribute('fill'); t.remove(); return { ok: f === '#0a84ff', detail: `fill = ${f}` }; });
+    await check('shadow: a donut keeps its hole', async () => { const t = make(lab, SHAPES.donut, { shadow: 'followLight' }); const d = shadowOf(t.wrap)?.querySelector('path')?.getAttribute('d') || ''; t.remove(); const n = (d.match(/M/g) || []).length; return { ok: n === 2, detail: `${n} subpaths (want 2: outer edge and hole)` }; });
+    await check('shadow: update() adds and removes it', async () => {
+      const t = make(lab, SHAPES.card, { shadow: 'bottom' }); const a = !!shadowOf(t.wrap);
+      t.box.update({ shadow: 'none' }); const b = !!shadowOf(t.wrap);
+      t.box.update({ shadow: 'followLight' }); const c = !!shadowOf(t.wrap); t.remove();
+      return { ok: a && !b && c, detail: `on: ${a}, after none: ${b}, back: ${c}` };
+    });
+    await check('shadow: removed with the box', async () => { const t = make(lab, SHAPES.card, { shadow: 'bottom' }); const w = t.wrap; t.box.destroy(); const left = w.querySelectorAll('[data-bb]').length; w.remove(); return { ok: left === 0, detail: `${left} brickbox elements left after destroy()` }; });
+
+    await check('text selection lock: drag mode locks on press, unlocks on release', async () => {
+      const t = make(lab, '<div class="card orange" style="width:240px"><span>text</span><br><input value="field"></div>', { control: 'drag' });
+      const span = $('span', t.wrap), [x, y] = centre(span); fire(span, 'pointerdown', x, y);
+      const during = t.wrap.style.userSelect; fire(window, 'pointerup', x, y); const after = t.wrap.style.userSelect; t.remove();
+      return { ok: during === 'none' && after === '', detail: `during: "${during}", after: "${after}"` };
+    });
+    await check('text selection lock: skipped when pressing an input', async () => {
+      const t = make(lab, '<div class="card orange" style="width:240px"><span>text</span><br><input value="field"></div>', { control: 'both' });
+      const input = $('input', t.wrap), [x, y] = centre(input); fire(input, 'pointerdown', x, y);
+      const during = t.wrap.style.userSelect; fire(window, 'pointerup', x, y); t.remove();
+      return { ok: during === '', detail: `userSelect while pressing the input: "${during}" (want empty)` };
+    });
+    await check('text selection lock: not used in hover mode with a mouse', async () => {
+      const t = make(lab, '<div class="card orange" style="width:240px"><span>text</span></div>', { control: 'hover' });
+      const span = $('span', t.wrap), [x, y] = centre(span); fire(span, 'pointerdown', x, y);
+      const during = t.wrap.style.userSelect; fire(window, 'pointerup', x, y); t.remove();
+      return { ok: during === '', detail: `userSelect: "${during}" (want empty)` };
+    });
+
+    await check('rebuild: changing depth keeps the wall strips', async () => {
+      const t = make(lab, SHAPES.card); const s0 = $('[data-bb=walls] i', t.wrap); t.box.update({ depth: 60 });
+      const ok = $('[data-bb=walls] i', t.wrap) === s0 && sinkOf(t.wrap).style.getPropertyValue('--bb-d') === '60px'; t.remove();
+      return { ok, detail: ok ? 'same strip elements, --bb-d is now 60px' : 'the strips were rebuilt, or --bb-d did not change' };
+    });
+    await check('rebuild: update({}) with nothing changed keeps the strips', async () => { const t = make(lab, SHAPES.card); const s0 = $('[data-bb=walls] i', t.wrap); t.box.update({}); const ok = $('[data-bb=walls] i', t.wrap) === s0; t.remove(); return { ok, detail: ok ? 'same strip elements' : 'rebuilt for nothing' }; });
+    await check('rebuild: update({}) still refreshes the walls after a colour change', async () => {
+      const t = make(lab, SHAPES.card, { advanced: { trackColor: false } }); t.child.style.background = 'rgb(10, 20, 200)';
+      const before = baseRgb($('[data-bb=walls] i', t.wrap)); t.box.update({}); const after = baseRgb($('[data-bb=walls] i', t.wrap)); t.remove();
+      return { ok: before.join() !== '10,20,200' && after.join() === '10,20,200', detail: `with trackColor off: ${before} before update({}), ${after} after` };
+    });
+    await check('startup: the walls are built once, not twice', async () => {
+      const t = make(lab, SHAPES.card); let builds = 0; new MutationObserver((m) => { builds += m.filter((r) => r.addedNodes.length).length; }).observe($('[data-bb=walls]', t.wrap), { childList: true });
+      await wait(300); t.remove(); return { ok: builds === 0, detail: `${builds} extra builds after construction (0.2.0 did 1)` };
+    });
+    await check('far box: no walls until you scroll near it', async () => {
+      const y0 = scrollY, sp = document.createElement('div'); sp.style.cssText = 'position:absolute;left:0;top:0;width:10px;height:7000px;pointer-events:none'; document.body.appendChild(sp);
+      const w = document.createElement('div'); w.style.cssText = 'position:absolute;left:20px;top:5200px;display:inline-block'; w.innerHTML = SHAPES.donut; document.body.appendChild(w);
+      const b = brickbox(w, { depth: 30, control: 'static' }); await wait(200); const before = strips(w);
+      scrollTo(0, 4900); await wait(700); const after = strips(w); scrollTo(0, y0); b.destroy(); w.remove(); sp.remove();
+      return { ok: before === 0 && after > 0, detail: `strips before scrolling: ${before}, after: ${after}` };
+    });
+
+    // ---------------------------------------------------------------- 0.4.0
+    await check('clip-path: calc() is followed, not replaced by a rectangle', async () => {
+      const t = make(lab, '<div class="card blue" style="width:150px;height:96px;clip-path:polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%)"></div>');
+      const n = strips(t.wrap); t.remove(); return { ok: n === 5, detail: `${n} wall strips (5 follows the notched corner, 4 would be a plain rectangle)` };
+    });
+    await check('clip-path: min(), clamp() and rem are followed too', async () => {
+      const a = make(lab, '<div class="card blue" style="width:150px;height:96px;clip-path:polygon(0 0, min(50%, 70px) 0, 100% clamp(10px, 20%, 40px), 100% 100%, 0 100%)"></div>');
+      const b = make(lab, '<div class="card blue" style="width:150px;height:96px;clip-path:polygon(0 0, calc(100% - 2rem) 0, 100% 2rem, 100% 100%, 0 100%)"></div>');
+      const na = strips(a.wrap), nb = strips(b.wrap); a.remove(); b.remove(); return { ok: na === 5 && nb === 5, detail: `min/clamp: ${na} strips, rem: ${nb} strips (want 5 and 5)` };
+    });
+    await check('clip-path: calc() inside inset() and circle() gives curves', async () => {
+      const a = make(lab, '<div class="card blue" style="width:150px;height:96px;clip-path:inset(calc(10px + 5%) 0 0 0 round calc(2 * 12px))"></div>');
+      const b = make(lab, '<div class="card blue" style="width:150px;height:96px;clip-path:circle(calc(50% - 10px) at 50% 50%)"></div>');
+      const na = strips(a.wrap), nb = strips(b.wrap); a.remove(); b.remove(); return { ok: na > 8 && nb > 8, detail: `inset ${na} strips, circle ${nb} strips (a plain rectangle has 4)` };
+    });
+
+    await check('shadow: follows the pointer as the box tilts', async () => {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return { info: true, detail: 'skipped: reduced motion is on, so hover tilt is off' };
+      const t = make(lab, SHAPES.card, { control: 'hover', shadow: 'followLight', depth: 30 }), r = t.wrap.getBoundingClientRect();
+      const mv = (x, y) => t.wrap.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: x, clientY: y, pointerType: 'mouse', pointerId: 1 }));
+      const rest = shift(t.wrap); mv(r.left + 8, r.top + 8); const a = shift(t.wrap); mv(r.right - 8, r.bottom - 8); const b = shift(t.wrap); t.remove();
+      const f = (v) => v.map((n) => n.toFixed(1)).join(', ');
+      return { ok: f(rest) !== f(a) && f(a) !== f(b), detail: `offset at rest ${f(rest)}, top-left ${f(a)}, bottom-right ${f(b)}` };
+    });
+    await check('shadow: tightens while pressed', async () => {
+      const t = make(lab, SHAPES.card, { shadow: 'bottom', depth: 40, tilt: flat, pressSink: 70 });
+      const before = shift(t.wrap), [x, y] = centre(t.wrap); fire(t.wrap, 'pointerdown', x, y); const during = shift(t.wrap); fire(window, 'pointerup', x, y); t.remove();
+      return { ok: during[1] < before[1] * 0.6, detail: `offset ${before[1].toFixed(1)}px at rest, ${during[1].toFixed(1)}px while pressed` };
+    });
+    await check('shadow: lies behind the box in the same 3D scene', async () => {
+      const t = make(lab, SHAPES.card, { shadow: 'bottom', depth: 40 }); const z = shadowOf(t.wrap)?.style.transform.match(/translateZ\((-?[\d.]+)px\)/)?.[1]; t.remove();
+      return { ok: parseFloat(z) === -40, detail: `translateZ(${z}px), wanted -40px (the box's depth)` };
+    });
+
+    const rAF = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await check('colour tracking: a class change recolours the walls without rebuilding them', async () => {
+      const t = make(lab, SHAPES.card), s0 = $('[data-bb=walls] i', t.wrap); t.child.classList.add('tk-red'); await rAF(); await wait(60);
+      const s1 = $('[data-bb=walls] i', t.wrap), c = baseRgb(s1); t.remove(); return { ok: s1 === s0 && c.join() === '234,55,55', detail: `wall colour ${c}, same strip elements: ${s1 === s0}` };
+    });
+    await check('colour tracking: a theme class on <html> recolours the walls', async () => {
+      const t = make(lab, '<div class="card tk-th" style="width:150px;height:96px"></div>'), a = baseRgb($('[data-bb=walls] i', t.wrap));
+      document.documentElement.classList.add('tk-dark'); await rAF(); await wait(60); const b = baseRgb($('[data-bb=walls] i', t.wrap)); document.documentElement.classList.remove('tk-dark'); t.remove();
+      return { ok: a.join() === '255,178,0' && b.join() === '40,40,60', detail: `light ${a}, dark ${b}` };
+    });
+    await check('colour tracking: follows a colour transition frame by frame', async () => {
+      const t = make(lab, '<div class="tk-tr tk-a" style="width:150px;height:96px;border-radius:20px"></div>'); t.child.classList.add('tk-b'); await wait(200);
+      const mid = baseRgb($('[data-bb=walls] i', t.wrap))[1]; await wait(500); const end = baseRgb($('[data-bb=walls] i', t.wrap))[1]; t.remove();
+      return { ok: mid > 114 && mid < 170 && end === 170, detail: `green channel part-way ${mid} (between 114 and 170), then ${end}` };
+    });
+    await check('colour tracking: changing the shape rebuilds the walls', async () => {
+      const t = make(lab, '<div class="card blue" style="width:150px;height:96px"></div>'), a = strips(t.wrap); t.child.classList.add('tk-round'); await rAF(); await wait(60); const b = strips(t.wrap); t.remove();
+      return { ok: b > a, detail: `${a} strips, then ${b} after the corners become round` };
+    });
+    await check('colour tracking: trackColor false and an explicit sideColor are left alone', async () => {
+      const a = make(lab, SHAPES.card, { advanced: { trackColor: false } }), b = make(lab, SHAPES.card, { sideColor: 'rgb(10,10,10)' });
+      await wait(120); // let the first ResizeObserver build pass, which always re-reads the colour
+      const a0 = baseRgb($('[data-bb=walls] i', a.wrap)).join(), b0 = baseRgb($('[data-bb=walls] i', b.wrap)).join();
+      a.child.classList.add('tk-red'); b.child.classList.add('tk-red'); await rAF(); await wait(60);
+      const ok = baseRgb($('[data-bb=walls] i', a.wrap)).join() === a0 && baseRgb($('[data-bb=walls] i', b.wrap)).join() === b0; a.remove(); b.remove();
+      return { ok, detail: ok ? 'both kept their colour' : 'one of them changed' };
+    });
+    await check('colour tracking: no animation frames are requested while idle', async () => {
+      const t = make(lab, SHAPES.card); window.__tick.stop(); await wait(200); let n = 0; const o = window.requestAnimationFrame; window.requestAnimationFrame = (cb) => { n++; return o(cb); };
+      await wait(500); window.requestAnimationFrame = o; window.__tick.start(); t.remove(); return { ok: n === 0, detail: `${n} requestAnimationFrame calls in 500 ms` };
+    });
+
+    const nest = (po = {}, no = {}) => {
+      const par = make(lab, '<div class="card purple" style="width:300px;height:200px;position:relative"></div>', { depth: 30, control: 'static', ...po });
+      const w = document.createElement('div'); w.style.cssText = 'position:absolute;left:20px;top:20px;display:inline-block';
+      w.innerHTML = '<div class="card orange" style="width:90px;height:40px"><span>key</span></div>'; par.child.appendChild(w);
+      const box = brickbox(w, { lift: 0, depth: 10, ...no });
+      return { par, w, box, face: w.querySelector('.card'), clean() { box.destroy(); w.remove(); par.remove(); } };
+    };
+    await check('nesting: lift stands the box on its parent, lift + depth above the face', async () => {
+      const n = nest({}, { lift: 6, depth: 10 }); const tz = n.w.style.translate || n.w.style.transform, persp = $('[data-bb=persp]', n.w).style.perspective;
+      const ok = n.w.hasAttribute('data-bb-nested') && /16px/.test(tz) && persp === 'none' && getComputedStyle(n.par.child).transformStyle === 'preserve-3d';
+      const d = `nested: ${n.w.hasAttribute('data-bb-nested')}, offset "${tz}", perspective ${persp}`; n.clean(); return { ok, detail: d };
+    });
+    await check('nesting: a nested box is static and untilted, even if hover is requested', async () => {
+      const n = nest({}, { control: 'hover' }), r = n.w.getBoundingClientRect(), obj = $('[data-bb=obj]', n.w), t0 = obj.style.transform;
+      n.w.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: r.left + 5, clientY: r.top + 5, pointerType: 'mouse', pointerId: 1 })); const t1 = obj.style.transform; n.clean();
+      return { ok: t0 === t1 && /rotateX\(0deg\)/.test(t0), detail: `transform "${t0}" before and "${t1}" after a hover` };
+    });
+    await check('nesting: shading is on by default, and the light comes from the parent', async () => {
+      const a = nest({ light: 90 }, { sideColor: 'rgb(10,20,30)' }), b = nest({}, { sideColor: 'rgb(10,20,30)', light: 90 }), c = nest({}, { sideColor: 'rgb(10,20,30)' });
+      const sa = $('[data-bb=walls] i', a.w).style.background, sb = $('[data-bb=walls] i', b.w).style.background, sc = $('[data-bb=walls] i', c.w).style.background;
+      const shaded = /linear-gradient\(rgba/.test(sa), ok = shaded && sa === sb && sa !== sc; a.clean(); b.clean(); c.clean();
+      return { ok, detail: `shaded: ${shaded}; parent light 90 matches an explicit 90: ${sa === sb}; differs from the default light: ${sa !== sc}` };
+    });
+    await check('nesting: the browser decides what was hit, so a rotated parent cannot throw it off', async () => {
+      const n = nest({ tilt: { x: 20, y: -35 } }, { pressSink: 70 }), [x, y] = centre(n.face);
+      fire(n.face, 'pointerdown', -999, -999); const v = pv(n.w); fire(window, 'pointerup', x, y); n.clean();
+      return { ok: parseFloat(v) < 1, detail: `a press aimed at the face, with nonsense coordinates, set --bb-p to ${v}` };
+    });
+    await check('nesting: pressing a nested box does not start a drag of the parent', async () => {
+      const n = nest({ control: 'drag' }, { pressSink: 70 }), [x, y] = centre(n.face); fire(n.face, 'pointerdown', x, y);
+      const onKey = n.par.wrap.style.userSelect, pressed = pv(n.w); fire(window, 'pointerup', x, y);
+      const [px, py] = centre(n.par.wrap); fire(n.par.child, 'pointerdown', px + 90, py + 50); const onBody = n.par.wrap.style.userSelect; fire(window, 'pointerup', px, py); n.clean();
+      return { ok: onKey === '' && parseFloat(pressed) < 1 && onBody === 'none', detail: `on the key: parent userSelect "${onKey}", key pressed ${pressed}; on the parent's own face: "${onBody}" (a drag started)` };
+    });
+    await check("nesting: its shadow falls on the parent's face", async () => {
+      const n = nest({}, { lift: 4, depth: 10, shadow: 'bottom' }), z = parseFloat(shadowOf(n.w)?.style.transform.match(/translateZ\((-?[\d.]+)px\)/)?.[1]); n.clean();
+      return { ok: Math.abs(z - -13.5) < 0.01, detail: `translateZ(${z}px), wanted -13.5px (below the box by lift + depth, 0.5px above the parent's face)` };
+    });
+    await check('nesting: removing lift, or destroying the box, undoes everything', async () => {
+      const n = nest(); n.box.update({ lift: undefined });
+      const a = !n.w.hasAttribute('data-bb-nested') && !n.w.style.translate && $('[data-bb=persp]', n.w).style.perspective === '1000px';
+      const m = nest(); m.box.destroy(); const b = m.par.child.style.transformStyle === ''; n.clean(); m.w.remove(); m.par.remove();
+      return { ok: a && b, detail: `after update({ lift: undefined }): ${a ? 'normal box again' : 'still nested'}; after destroy(): parent face ${b ? 'restored' : 'still preserve-3d'}` };
+    });
+    await check('nesting: a box with no lift is left alone, even inside another box', async () => {
+      const par = make(lab, '<div class="card purple" style="width:300px;height:200px;position:relative"></div>', { depth: 30, control: 'static' });
+      const w = document.createElement('div'); w.style.cssText = 'position:absolute;left:20px;top:20px;display:inline-block'; w.innerHTML = '<div class="card orange" style="width:90px"></div>'; par.child.appendChild(w); const b = brickbox(w, { depth: 10 });
+      const ok = !w.hasAttribute('data-bb-nested') && !w.style.translate && $('[data-bb=persp]', w).style.perspective === '1000px'; b.destroy(); w.remove(); par.remove();
+      return { ok, detail: ok ? 'it kept its own perspective' : 'it was changed' };
+    });
+    await check('nesting: lift with no parent brickbox changes nothing', async () => {
+      const t = make(lab, SHAPES.card, { lift: 5 }); const ok = !t.wrap.hasAttribute('data-bb-nested') && $('[data-bb=persp]', t.wrap).style.perspective === '1000px'; t.remove();
+      return { ok, detail: ok ? 'ignored, as designed' : 'it nested anyway' };
+    });
+    await check('sideColor "none" and "transparent" build no walls', async () => {
+      const a = make(lab, SHAPES.card, { sideColor: 'none' }), b = make(lab, SHAPES.card, { sideColor: 'transparent' }), c = make(lab, SHAPES.card);
+      const na = strips(a.wrap), nb = strips(b.wrap), nc = strips(c.wrap); a.remove(); b.remove(); c.remove();
+      return { ok: na === 0 && nb === 0 && nc > 0, detail: `none: ${na}, transparent: ${nb}, normal: ${nc} strips` };
+    });
+
+    // performance
+    const salt = Math.random();
+    await check('speed: 30 identical donuts (cold path)', async () => {
+      const r = 80 + salt, t0 = performance.now(), list = [];
+      for (let i = 0; i < 30; i++) list.push(make(lab, donutR(r)));
+      const build = performance.now() - t0, t1 = performance.now(); list.forEach((x) => x.box.update({})); const upd = performance.now() - t1;
+      list.forEach((x) => x.remove());
+      return { ok: build < 500 && upd < 50, detail: `build ${build.toFixed(0)} ms (limit 500), update({}) on all ${upd.toFixed(1)} ms (limit 50)` };
+    });
+    await check('speed: 30 different donuts (each samples its own path)', async () => {
+      const t0 = performance.now(), list = [];
+      for (let i = 0; i < 30; i++) list.push(make(lab, donutR(60 + salt + i * 0.6)));
+      const build = performance.now() - t0; list.forEach((x) => x.remove());
+      return { info: true, detail: `build ${build.toFixed(0)} ms, about ${(build / 30).toFixed(0)} ms per distinct shape` };
+    });
+
+    const body = $('#results'); body.innerHTML = '';
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td></td><td class="${r.state}">${r.state === 'pass' ? 'PASS' : r.state === 'fail' ? 'FAIL' : 'INFO'}</td><td></td>`;
+      tr.children[0].textContent = r.name; tr.children[2].textContent = r.detail; body.appendChild(tr);
+    }
+    const checked = rows.filter((r) => r.state !== 'info'), passed = checked.filter((r) => r.state === 'pass').length;
+    const s = $('#summary'); s.textContent = `${passed} of ${checked.length} checks passed` + (passed === checked.length ? '. Everything works.' : '. Look at the FAIL rows.');
+    s.style.color = passed === checked.length ? '#00873a' : 'var(--red)';
+    window.__results = rows;
+  }
+  $('#rerun').onclick = () => { $('#summary').textContent = 'Running…'; runChecks(); };
+
+  /* ------------------------------------------------------------ live readouts */
+  const lives = [];
+  const live = (el, fn) => lives.push(() => { const t = fn(); if (el.textContent !== t) el.textContent = t; });
+  let tickOn = true;
+  function tick() { if (!tickOn) return; lives.forEach((f) => f()); requestAnimationFrame(tick); }
+  window.__tick = { stop() { tickOn = false; }, start() { if (!tickOn) { tickOn = true; tick(); } } };
+  tick();
+
+  /* ------------------------------------------------------------ 2. pressSink */
+  for (const [val, label] of [[undefined, 'no pressSink'], [25, 'pressSink: 25'], [50, 'pressSink: 50'], ['80%', 'pressSink: "80%"'], [99, 'pressSink: 99'], [100, 'pressSink: 100 (counts as 99)']]) {
+    const item = document.createElement('div'); item.className = 'item'; $('#press').appendChild(item);
+    const t = make(item, `<div class="card green" style="width:170px;height:90px">${label}</div>`, { depth: 40, control: 'static', ...(val === undefined ? {} : { pressSink: val }) });
+    const out = document.createElement('div'); out.className = 'live'; item.appendChild(out);
+    live(out, () => { const p = parseFloat(pv(t.wrap)); return `--bb-p ${isNaN(p) ? '-' : p.toFixed(2)} = ${isNaN(p) ? '-' : (40 * p).toFixed(1)} of 40px`; });
+  }
+
+  /* ------------------------------------------------------------ 3. shadows */
+  const gallery = [
+    ['card', 'followLight', { shadow: 'followLight' }], ['card', 'followLight, light: "right"', { shadow: 'followLight', light: 'right' }],
+    ['card', 'followLight, light: 30', { shadow: 'followLight', light: 30 }], ['card', 'bottom', { shadow: 'bottom' }],
+    ['card', 'bottom 24px 0 rgba(0,0,0,.5)', { shadow: 'bottom 24px 0 rgba(0,0,0,.5)' }], ['donut', 'followLight (hole stays a hole)', { shadow: 'followLight' }],
+    ['heart', 'followLight 10px 0 #7a1', { shadow: 'followLight 10px 0 #7a1' }], ['card', 'bottom 8px 8px (grows)', { shadow: 'bottom 8px 8px rgba(0,0,0,.4)' }],
+    ['donut', 'bottom 6px -8px (shrinks)', { shadow: 'bottom 6px -8px rgba(0,0,0,.5)' }], ['card', 'none (the default)', {}],
+  ];
+  for (const [shape, label, opts] of gallery) {
+    const item = document.createElement('div'); item.className = 'item'; item.style.cssText = 'width:210px;padding:24px 20px 0'; $('#shadows').appendChild(item);
+    make(item, SHAPES[shape], { depth: 36, tilt: { x: 14, y: -20 }, ...opts });
+    const cap = document.createElement('div'); cap.style.marginTop = '26px'; cap.textContent = label; item.appendChild(cap);
+  }
+  // playground
+  let pg = null;
+  const pgBuild = () => {
+    const mode = $('#pg-mode').value, blur = $('#pg-blur').value, spread = $('#pg-spread').value, color = $('#pg-color').value.trim();
+    const shadow = mode === 'none' ? 'none' : [mode, blur !== '' ? blur + 'px' : '', blur !== '' && spread !== '' ? spread + 'px' : '', blur !== '' ? color : ''].filter(Boolean).join(' ');
+    const opts = { shadow, light: +$('#pg-light').value, depth: +$('#pg-depth').value };
+    $('#pg-light-v').textContent = opts.light; $('#pg-depth-v').textContent = opts.depth;
+    $('#pg-out').textContent = `brickbox(el, {\n  depth: ${opts.depth},\n  light: ${opts.light},\n  shadow: "${shadow}",\n})` + (blur === '' && (spread !== '' || color) ? '\n\n(blur is empty, so spread and colour are ignored: they come after blur)' : '');
+    if (pg && pg.shape === $('#pg-shape').value) { pg.t.box.update(opts); return; }
+    if (pg) pg.t.remove();
+    pg = { shape: $('#pg-shape').value, t: make($('#pg-stage'), SHAPES[$('#pg-shape').value], { control: 'both', tilt: { x: 14, y: -20 }, ...opts }) };
+  };
+  $('#pg-controls').addEventListener('input', pgBuild); pgBuild();
+
+  /* ------------------------------------------------------------ 4. text selection */
+  for (const control of ['drag', 'both', 'hover']) {
+    const item = document.createElement('div'); item.className = 'item'; item.style.maxWidth = '300px'; $('#select').appendChild(item);
+    const t = make(item, `<div class="card red text-card"><b>control: "${control}"</b>The quick brown fox jumps over the lazy dog. Press here and drag across these words, and past the edge of the card.<input class="field" value="type here"></div>`, { depth: 24, control });
+    const out = document.createElement('div'); out.className = 'live'; item.appendChild(out);
+    live(out, () => `userSelect: ${t.wrap.style.userSelect || '(unset)'} | selected: ${getSelection().toString().length} chars`);
+  }
+
+  /* ------------------------------------------------------------ 5. performance */
+  $('#perf-run').onclick = async () => {
+    const out = $('#perf-out'); out.textContent = 'Running…'; await wait(30);
+    const salt = Math.random(), time = (fn) => { const t = performance.now(); fn(); return performance.now() - t; };
+    let list = [];
+    const a = time(() => { for (let i = 0; i < 30; i++) list.push(make(lab, donutR(80 + salt))); });
+    const u = time(() => list.forEach((x) => x.box.update({}))); const strip = strips(list[0].wrap);
+    list.forEach((x) => x.remove()); list = [];
+    const b = time(() => { for (let i = 0; i < 30; i++) list.push(make(lab, donutR(60 + salt + i * 0.6))); });
+    list.forEach((x) => x.remove());
+    out.textContent = `30 identical donuts, first build:   ${a.toFixed(0)} ms   (0.2.0: about 2600 ms)\nupdate({}) on those 30:             ${u.toFixed(1)} ms   (0.2.0: about 2700 ms)\n30 different donuts, first build:   ${b.toFixed(0)} ms   (about ${(b / 30).toFixed(0)} ms per distinct shape; 0.2.0: about 90 ms)\nwall strips per donut:              ${strip}`;
+  };
+
+  /* ------------------------------------------------------------ 6. custom element */
+  const el = $('#el');
+  const sync = () => { el.setAttribute('shadow', $('#el-shadow').value); el.setAttribute('press-sink', $('#el-press').value); el.setAttribute('depth', $('#el-depth').value); el.setAttribute('control', $('#el-control').value); };
+  for (const id of ['el-shadow', 'el-press', 'el-depth', 'el-control']) $('#' + id).addEventListener('input', sync);
+
+  /* ------------------------------------------------------------ 7. colour tracking */
+  const trackItems = [
+    ['class toggle', '<div class="card blue" style="width:170px;height:96px">class</div>'],
+    ['hover, instant', '<div class="card tk-hv" style="width:170px;height:96px">hover me</div>'],
+    ['hover, 0.4s transition', '<div class="card tk-hvt" style="width:170px;height:96px">hover me</div>'],
+    ['theme class on html', '<div class="card tk-th" style="width:170px;height:96px;color:#0F0F14">theme</div>'],
+  ];
+  const trackBoxes = [];
+  for (const [label, markup] of trackItems) {
+    const item = document.createElement('div'); item.className = 'item'; item.style.padding = '20px 20px 0'; $('#tracking').appendChild(item);
+    trackBoxes.push(make(item, markup, { depth: 30, control: 'static', tilt: { x: 14, y: -20 } }));
+    const cap = document.createElement('div'); cap.style.marginTop = '22px'; cap.textContent = label; item.appendChild(cap);
+  }
+  $('#tk-class').onclick = () => trackBoxes[0].child.classList.toggle('tk-red');
+  $('#tk-theme').onclick = () => document.documentElement.classList.toggle('tk-dark');
+
+  /* ------------------------------------------------------------ 8. calc() shapes */
+  const CALCS = [
+    ['polygon with calc()', 'polygon(0 0, calc(100% - 36px) 0, 100% 36px, 100% 100%, 0 100%)'],
+    ['min() and clamp()', 'polygon(0 0, min(60%, 90px) 0, 100% clamp(14px, 30%, 50px), 100% 100%, 0 100%)'],
+    ['inset() with a calc round', 'inset(calc(8px + 4%) 0 0 0 round calc(3 * 10px))'],
+    ['circle(calc())', 'circle(calc(50% - 8px) at 50% 50%)'],
+  ];
+  for (const [label, cp] of CALCS) {
+    const item = document.createElement('div'); item.className = 'item'; item.style.padding = '20px 20px 0'; $('#calcs').appendChild(item);
+    make(item, `<div style="width:170px;height:120px;background:linear-gradient(135deg,rgb(255,178,0),rgb(234,55,55));clip-path:${cp}"></div>`, { depth: 30, control: 'static', tilt: { x: 16, y: -24 } });
+    const cap = document.createElement('div'); cap.style.marginTop = '22px'; cap.textContent = label; item.appendChild(cap);
+  }
+
+  /* ------------------------------------------------------------ 9. nesting */
+  const body = make($('#remote-stage'), '<div style="width:230px;height:300px;position:relative;border-radius:30px;background:linear-gradient(135deg,rgb(60,60,110),rgb(30,28,70))"></div>', { depth: 36, control: 'both', shadow: 'followLight', tilt: { x: 10, y: -20 } });
+  let clicks = 0; const remoteOut = $('#remote-out');
+  const say = () => { remoteOut.textContent = 'key clicks received: ' + clicks + '\n\npress a key: it sinks, and the\nbody must not start a drag'; }; say();
+  const key = (label, x, y, w, h, opts, round) => {
+    const el = document.createElement('div'); el.style.cssText = `position:absolute;left:${x}px;top:${y}px;display:inline-block`;
+    el.innerHTML = `<div class="key${round ? ' round' : ''}" style="width:${w}px;height:${h}px">${label}</div>`; body.child.appendChild(el);
+    brickbox(el, { pressSink: 65, shadow: 'followLight 6px 0 rgba(0,0,0,.5)', ...opts }); el.addEventListener('click', () => { clicks++; say(); });
+  };
+  key('VOL', 26, 30, 70, 44, { lift: 0, depth: 12 });
+  key('CH', 134, 30, 70, 44, { lift: 0, depth: 12 });
+  key('OK', 75, 112, 80, 80, { lift: 0, depth: 12 }, true);
+  key('GO', 95, 132, 40, 40, { lift: 12, depth: 8, sideColor: 'rgb(20,40,160)' }, true);
+  key('A', 26, 232, 56, 40, { lift: 0, depth: 10 });
+  key('B', 148, 232, 56, 40, { lift: 0, depth: 10 });
+
+  /* ------------------------------------------------------------ 10. far box */
+  const far = document.createElement('div'); far.style.display = 'inline-block'; far.innerHTML = SHAPES.heart; $('#far-slot').replaceChildren(far);
+  brickbox(far, { depth: 36, control: 'both', shadow: 'followLight', tilt: { x: 14, y: -20 } });
+  live($('#far-status'), () => `far box: ${strips(far)} wall strips (scrolled ${Math.round(scrollY)}px)`);
+
+  runChecks();
+</script>
