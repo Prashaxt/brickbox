@@ -7,7 +7,7 @@ Thanks for wanting to help. brickbox gives any element real 3D depth, and we wan
 Every change is checked against these six rules.
 
 1. **The element stays real.** The user's element is the front face. We never clone, hide or rewrite their content. Text stays selectable, and links and buttons keep working.
-2. **Tiny, with no dependencies.** No runtime dependencies and no stylesheet to import. The goal is to shrink the core (about 4.4 KB gzipped today, target 3 KB), so a change that adds more than about 0.3 KB gzipped needs a discussion first.
+2. **Tiny, with no dependencies.** No runtime dependencies and no stylesheet to import.
 3. **Quiet at rest.** No timers, animation loops or listeners doing work while nobody is touching the element. Motion comes from CSS transitions, not per-frame JavaScript.
 4. **Gentle with the page.** Wrapping an element must not change its layout. Walls are `aria-hidden` and ignore the pointer. `prefers-reduced-motion` is respected. Nothing touches the network or storage.
 5. **Safe on the server.** No `window` or `document` access while rendering.
