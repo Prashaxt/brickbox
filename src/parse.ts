@@ -40,3 +40,28 @@ export function shadowVector(mode: ShadowKind, lightDeg: number): [number, numbe
 export function polysToPath(polys: Pt[][]): string {
   return polys.map((P) => 'M' + P.map((p) => `${+p[0].toFixed(2)} ${+p[1].toFixed(2)}`).join('L') + 'Z').join('');
 }
+
+/**
+ * Where the shadow falls, as a CSS matrix(a, b, c, d, e, f) applied about the centre of the face.
+ *
+ * The shadow is the front face projected along the light onto the page behind the box. A point that is `h` above
+ * the page lands `k * h` away from where it appears, in the direction (vx, vy). Tilting the box lifts one side of
+ * the face and lowers the other, so `h` depends on where the point is, and that makes the whole mapping affine.
+ * Perspective is ignored.
+ *
+ * tx and ty are the box's tilt in degrees as given to setT, which applies rotateX(tx) then rotateY(-ty).
+ * hPivot is how high the rotation pivot sits above the page, and zFace is how far in front of the pivot the face is.
+ */
+export function shadowMatrix(tx: number, ty: number, hPivot: number, zFace: number, vx: number, vy: number, k = 0.6): [number, number, number, number, number, number] {
+  const th = (tx * Math.PI) / 180, ph = (-ty * Math.PI) / 180;
+  const ct = Math.cos(th), st = Math.sin(th), cp = Math.cos(ph), sp = Math.sin(ph), z = zFace;
+  const h0 = hPivot + z * cp * ct;
+  return [
+    cp - k * vx * sp * ct,       // x from u
+    sp * st - k * vy * sp * ct,  // y from u
+    k * vx * st,                 // x from v
+    ct + k * vy * st,            // y from v
+    z * sp + k * vx * h0,
+    -z * cp * st + k * vy * h0,
+  ];
+}
