@@ -3,7 +3,7 @@ import type { BrickBoxInstance, BrickBoxOptions, Control, LightWord } from './ty
 
 const ATTRS = [
   'depth', 'control', 'tilt', 'max-angle', 'spring-back', 'spring-duration', 'press-sink', 'press-duration',
-  'side-color', 'shading', 'light', 'perspective', 'edge-color', 'edge-width', 'touch-scroll', 'disabled', 'tolerance', 'reverse-hover', 'reverse-drag', 'ignore', 'shadow',
+  'side-color', 'shading', 'light', 'perspective', 'edge-color', 'edge-width', 'touch-scroll', 'disabled', 'tolerance', 'reverse-hover', 'reverse-drag', 'ignore', 'shadow', 'lift',
 ];
 
 function read(el: HTMLElement): BrickBoxOptions {
@@ -19,7 +19,7 @@ function read(el: HTMLElement): BrickBoxOptions {
   return {
     depth: len('depth'), control: (g('control') as Control) || undefined, tilt, maxAngle: num('max-angle'),
     springBack: bool('spring-back'), springDuration: num('spring-duration'),
-    pressSink: len('press-sink'), pressDuration: num('press-duration'), shadow: (g('shadow') as BrickBoxOptions['shadow']) || undefined,
+    pressSink: len('press-sink'), pressDuration: num('press-duration'), shadow: (g('shadow') as BrickBoxOptions['shadow']) || undefined, lift: len('lift'),
     sideColor: g('side-color') || undefined, shading: bool('shading'),
     light: l == null ? undefined : isNaN(+l) ? (l as LightWord) : +l,
     perspective: num('perspective'), edgeColor: g('edge-color') || undefined, edgeWidth: num('edge-width'),
