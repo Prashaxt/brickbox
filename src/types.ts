@@ -13,6 +13,8 @@ export interface Advanced {
   bounce?: number;
   /** Hide back-facing walls to halve wall painting. @default true */
   cull?: boolean;
+  /** Re-colour the walls when the face's colour or shape changes (hover, class, theme, transitions). @default true */
+  trackColor?: boolean;
 }
 
 export type ShadowMode = 'none' | 'followLight' | 'bottom';
@@ -57,6 +59,12 @@ export interface BrickBoxOptions {
    * The distance comes from `depth`. @default "none"
    */
   shadow?: Shadow;
+  /**
+   * Makes this box a part standing on its parent brickbox. It joins the parent's 3D scene and its base sits `lift`
+   * above the parent's face (0 sits on it), so `depth` is its height. A nested box is static, untilted and shaded
+   * by default, and it uses its parent's `light`. Leave it unset and the box behaves exactly as before.
+   */
+  lift?: number | string;
   /** Perspective distance in px. @default 1000 */
   perspective?: number;
   /** Lines on the back rim and sharp corners. "auto" is a darker line. @default "none" */
