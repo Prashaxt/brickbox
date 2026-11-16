@@ -50,12 +50,13 @@ Some approaches to 3D on the web ask you to rebuild your element as a box made o
 
 - **Real DOM.** The front face is your element. Its text stays selectable and it stays styled by you. The walls are drawn behind it and marked `aria-hidden`.
 - **Any shape.** Rounded corners, elliptical radii and `clip-path` (polygon, circle, ellipse, inset, path), holes included.
-- **Colours follow.** Walls match a solid background or continue a linear gradient around the edge.
+- **Colours follow.** Walls match a solid background or continue a linear gradient around the edge, and they follow it when it changes.
 - **Your pick of pointer behaviour.** Hover, drag, both or static, plus press-to-sink, reverse switches and ignore areas.
+- **Parts on parts.** Nest boxes with `lift` to build physical buttons on a tilting panel.
 - **Tiny.** About 6.5 KB gzipped for the core, and no runtime dependencies.
 - **One engine, three ways in.** Plain JavaScript, a React component, or a `<brick-box>` custom element.
 
-**Status:** v0.3.0. This is pre-1.0, so expect small API changes before 1.0.
+**Status:** v0.4.0. This is pre-1.0, so expect small API changes before 1.0.
 
 ## Install
 
@@ -172,7 +173,7 @@ Use `evenodd` for holes. `path()` coordinates are fixed pixels from the element'
 .image    { background-color: #AB54F7; background-image: url(stripes.svg); }
 ```
 
-A solid background gives solid walls. A single linear gradient with `rgb()` stops is continued around the edge. An image can't be extended onto the walls, so they use the element's background colour instead. To pick the wall colour yourself, set `sideColor="#0F0F14"`.
+A solid background gives solid walls. A single linear gradient with `rgb()` stops is continued around the edge. An image can't be extended onto the walls, so they use the element's background colour instead. To pick the wall colour yourself, set `sideColor="#0F0F14"`. When the face's colour changes, from `:hover`, a class, a theme or a transition, the walls follow it without any call from you.
 
 ### Ignore areas
 
@@ -217,7 +218,26 @@ A press starts on pointer down and is cancelled as soon as a drag begins.
 
 Add blur, spread and colour after the mode, in that order, like `box-shadow` without the offsets: `shadow="followLight 12px 2px rgba(0,0,0,.4)"`. What you leave out is chosen from `depth`, and the distance always comes from `depth` too, so a deeper box casts a longer, softer shadow.
 
-The shadow is the flat silhouette of your element, holes included, drawn behind the box, so it doesn't change as the box tilts. An ancestor with `overflow: hidden` will cut it off, so leave it room.
+The shadow is the flat silhouette of your element, holes included, drawn behind the box. It follows the box as it tilts, hovers, drags and presses: the side that lifts away casts a longer shadow, and a pressed box casts a tighter one. An ancestor with `overflow: hidden` will cut it off, so leave it room.
+
+### Nesting: parts that stand on parts
+
+```tsx
+<BrickBox depth={36} control="drag" shadow="followLight">
+  <div className="remote">
+    <BrickBox lift={0} depth={12} pressSink={65}>
+      <button className="key">OK</button>
+    </BrickBox>
+    <BrickBox lift={12} depth={8} pressSink={60}>
+      <button className="key small">GO</button>
+    </BrickBox>
+  </div>
+</BrickBox>
+```
+
+Give a box a `lift` and it becomes a part standing on its parent brickbox, in the same 3D scene, so it tilts with the parent and stands out from it. `lift` is how high the part's base sits above the parent's face (0 sits on it), and `depth` is the part's height. In the example GO sits on top of OK, because its `lift` equals OK's `depth`.
+
+A nested box is static, untilted and shaded, and it uses its parent's `light`. Pressing it presses only it, and the parent doesn't start a drag, but hovering over it still tilts the parent. Its shadow falls on the parent's face. A box inside another box that has no `lift` behaves exactly as before. If a parent has `overflow`, `opacity`, `filter`, `clip-path` or similar on the face, the scene is flattened and nothing can stand out of it. In development brickbox names the element.
 
 ## Props reference
 
@@ -233,6 +253,7 @@ Numbers are px for lengths and degrees for angles. `depth` also accepts a CSS le
 | `tilt` | `{ x: number, y: number }` in degrees, negatives allowed | `{ x: 14, y: 22 }` | Resting angle. +x shows the bottom wall and −x the top. +y shows the right wall and −y the left. |
 | `perspective` | number (px) | `1000` | Camera distance. Depth beyond about half of this can clip or distort. |
 | `disabled` | boolean | `false` | Render the child normally, with no 3D. |
+| `lift` | number, or a CSS length | unset | Makes this box a part standing on its parent brickbox. Its base sits `lift` above the parent's face (0 sits on it), and `depth` is its height. See Nesting. |
 
 </details>
 
@@ -266,7 +287,7 @@ Numbers are px for lengths and degrees for angles. `depth` also accepts a CSS le
 
 | Option | Type and allowed values | Default | What it does |
 |---|---|---|---|
-| `sideColor` | `"match"`, or any CSS colour | `"match"` | `"match"` follows the face's background: solid, or a single linear gradient with rgb stops. Any other CSS colour paints the walls that colour. |
+| `sideColor` | `"match"`, or any CSS colour | `"match"` | `"match"` follows the face's background: solid, or a single linear gradient with rgb stops. Any other CSS colour paints the walls that colour. `"none"` (or `"transparent"`) builds no walls at all, which suits a box that is only there to tilt its children. |
 | `shading` | boolean | on for `"match"`, off for an explicit colour | Lighting on the walls. |
 | `light` | `"top"`, `"top-right"`, `"right"`, `"bottom-right"`, `"bottom"`, `"bottom-left"`, `"left"`, `"top-left"`, or a number (degrees, 0 is top, clockwise) | `"top-left"` (315) | Where the light comes from. |
 
@@ -302,6 +323,7 @@ Pass these as `advanced={{ ... }}` in React or `advanced: { ... }` in JavaScript
 | `advanced.sensitivity` | number | `0.5` | Degrees of tilt per pixel of drag. |
 | `advanced.bounce` | number, 0 to 1 | `1` | Overshoot in the return animation. 0 removes it. |
 | `advanced.cull` | boolean | `true` | Hide back-facing walls. |
+| `advanced.trackColor` | boolean | `true` | Repaint the walls when the face's colour or shape changes (hover, class, theme, transitions). When off, they are only re-read when the box is built, resized or updated. |
 
 </details>
 
@@ -346,9 +368,10 @@ Attribute names are the kebab-case form of the options. Changing an attribute up
 | `tilt` | Two numbers, written `tilt="14 22"` (a comma works too). |
 | `max-angle`, `spring-duration`, `press-sink`, `press-duration`, `perspective`, `edge-width` | Numbers. `press-sink` is a percent of depth, 0 to 99. |
 | `spring-back`, `shading`, `touch-scroll`, `disabled`, `reverse-hover`, `reverse-drag` | Booleans. Present, or any value except `"false"`, means true. `="false"` means false. |
-| `side-color`, `edge-color` | Any CSS colour, plus `match` for `side-color` and `none` or `auto` for `edge-color`. |
+| `side-color`, `edge-color` | Any CSS colour, plus `match` or `none` for `side-color` and `none` or `auto` for `edge-color`. |
 | `light` | A word such as `top-left`, or a number in degrees. |
 | `ignore` | A CSS selector. |
+| `lift` | A number, or a CSS length. Nests the box on its parent brickbox. |
 | `shadow` | A mode, optionally followed by blur, spread and colour: `shadow="followLight 12px 2px rgba(0,0,0,.4)"`. |
 | `tolerance` | Number. The only advanced option exposed as an attribute. |
 
@@ -377,7 +400,7 @@ The silhouette comes from your element's computed `clip-path` if brickbox suppor
 
 **Holes** use even-odd nesting: a shape inside an odd number of others is a hole, and one inside an even number is solid. That handles donuts, frames, a solid centre inside a hole, and separate islands. Use `evenodd` in `path()` for holes.
 
-**Not supported:** `calc()` inside a clip-path, `url(#id)` and `shape()`. These fall back to the rounded rectangle, with a warning in development.
+**Lengths** can be plain px or %, or any CSS length expression the browser can evaluate: `calc()`, `min()`, `max()`, `clamp()` and units such as `rem` and `vw`. `path()` takes fixed numbers only. **Not supported:** `url(#id)` and `shape()`, which fall back to the rounded rectangle with a warning in development.
 
 **Good to know:**
 - A set `clip-path` overrides `border-radius` for the walls.
@@ -399,7 +422,7 @@ With `sideColor="match"`, brickbox reads the child's computed background when th
 
 Walls are shaded by a light angle (`light`, default top-left), and `shading` turns the lighting on or off. With an explicit `sideColor`, shading is off unless you set it.
 
-The colour is read at build time. It does not follow a later colour change, such as a hover transition on the face.
+The walls follow the face when its colour or shape changes. brickbox re-reads the face after a pointer enters, leaves, presses or releases, after focus changes, after a class or style change on the face, after a theme change on `<html>` (a class, an attribute or the colour scheme), and frame by frame while a colour or shape transition or a finite animation runs. Nothing runs while the box is idle. It can miss a change that reaches the face through a stylesheet edit, a class on a middle ancestor, or an infinite animation, so call `box.update({})` to refresh the walls then, or turn tracking off with `advanced.trackColor`.
 
 </details>
 
@@ -437,14 +460,28 @@ In development (when `process.env.NODE_ENV` isn't `"production"`), brickbox warn
 <details>
 <summary><b>The shape is a rounded rectangle, not my clip-path.</b></summary>
 
-The clip-path uses `calc()`, `url(#id)` or `shape()`, which aren't supported. In development you'll see a warning. Rewrite it as `polygon()`, `circle()`, `ellipse()`, `inset()` or `path()`.
+The clip-path uses `url(#id)` or `shape()`, which aren't supported (`calc()`, `min()`, `max()` and `clamp()` are). In development you'll see a warning. Rewrite it as `polygon()`, `circle()`, `ellipse()`, `inset()` or `path()`.
 
 </details>
 
 <details>
 <summary><b>The walls didn't change colour when the face did.</b></summary>
 
-Wall colours are read when the box is built. After the colour change, call `box.update({})` (it rebuilds the walls), or set `sideColor` yourself.
+Walls follow the face automatically after most changes. If yours didn't, the change probably reached the face in a way brickbox can't see, such as a stylesheet edit or a class on a middle ancestor. Call `box.update({})` to refresh the walls. Also check that `advanced.trackColor` isn't `false` and that `sideColor` isn't set to a colour.
+
+</details>
+
+<details>
+<summary><b>My nested box doesn't stand out from its parent.</b></summary>
+
+Something between the nested box and its parent's face flattens the 3D scene: `overflow` other than `visible`, `opacity` below 1, `filter`, `clip-path`, `mask`, `isolation: isolate`, `mix-blend-mode` or `contain: paint`. In development brickbox names the element. Remove it, or move the nested box out of it. A parent face with its own `clip-path` can't have parts standing out of it either, so put the part next to it.
+
+</details>
+
+<details>
+<summary><b>The keys move away from under my pointer.</b></summary>
+
+When the parent tilts on hover, everything on it moves, so a small key can slide out from under a still pointer. For a panel with many small keys, use `control="drag"` on the parent, or a small `maxAngle`.
 
 </details>
 
@@ -506,9 +543,9 @@ Everything is inline styles, so there's no stylesheet to import.
 
 ## Good to know
 
-- **Browsers.** The author tested desktop and phone browsers. Safari, Firefox and older mobile browsers aren't verified.
-- **Tests.** The 50 automated tests cover geometry and option parsing only. There are no DOM or browser tests yet.
-- **Colour.** Images and other complex backgrounds fall back to a solid wall colour, and wall colours don't follow a later colour change.
+- **Browsers.** The author tested desktop and phone browsers, including Firefox, Safari and older mobile browsers. Nesting (`lift`) is new in 0.4.0, so it has had the least testing.
+- **Tests.** The 62 automated tests cover geometry, shadow maths and option parsing only. There are no DOM or browser tests yet.
+- **Colour.** Images and other complex backgrounds fall back to a solid wall colour.
 - **Not extruded.** `box-shadow` and `outline` are not extruded. Borders stay on the front face.
 - **Depth.** Depth beyond about half of `perspective` can clip or distort.
 - **Press then drag.** Handlers on your own element can fire before a drag cancels the press.
