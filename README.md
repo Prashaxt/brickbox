@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Prashaxt/brickbox/main/.github/assets/lockup.png" alt="brickbox" width="360">
+  <img src="https://raw.githubusercontent.com/Prashaxt/brickbox/main/.github/assets/lockup-on-light.svg" alt="brickbox" width="360">
 </p>
 
 <p align="center">
