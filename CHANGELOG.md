@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+Release Date: 19 November 2026
+
 New:
 
 - Nesting. Give a box a `lift` and it becomes a part standing on its parent brickbox, in the same 3D scene, so a button can stand out from a tilting panel. `lift` is how high the part's base sits above the parent's face (0 sits on it), and `depth` is the part's height. A nested box is static, untilted and shaded by default, and it uses its parent's `light`. It uses the browser's own hit test, so it works inside a rotated parent. Pressing it presses only it and the parent does not start a drag, while hovering over it still tilts the parent. Its shadow falls on the parent's face. A box without `lift` is untouched, so nothing changes for existing pages. In development, brickbox names any element between the part and its parent that flattens the 3D scene (`overflow`, `opacity`, `filter`, `clip-path`, `mask`, `isolation`, `mix-blend-mode`, `contain: paint`).
