@@ -1,20 +1,31 @@
 {
   "name": "brickbox",
-  "version": "0.4.0-beta.1",
-  "description": "Wrap any element and give it real 3D depth. Tiny framework-free core with a React wrapper.",
+  "version": "1.0.0",
+  "description": "Wrap any element in real 3D depth. Tilt, drag, press and shadow, with real DOM, no WebGL and no dependencies. For React, plain JS and web components.",
   "keywords": [
     "3d",
-    "css",
-    "depth",
-    "extrude",
+    "css-3d",
+    "3d-effect",
+    "3d-object",
+    "3d-button",
     "tilt",
+    "tilt-effect",
+    "hover-effect",
+    "extrude",
+    "extrusion",
+    "depth",
+    "perspective",
+    "clip-path",
     "react",
+    "react-component",
     "web-component",
     "custom-element",
+    "typescript",
     "ui",
-    "tactile",
+    "object",
     "button",
-    "card"
+    "wrapper",
+    "zero-dependencies"
   ],
   "license": "MIT",
   "author": "PRASHANT PRASAD",
@@ -22,7 +33,7 @@
     "type": "git",
     "url": "git+https://github.com/Prashaxt/brickbox.git"
   },
-  "homepage": "https://github.com/Prashaxt/brickbox#readme",
+  "homepage": "https://brickbox.js.org",
   "bugs": {
     "url": "https://github.com/Prashaxt/brickbox/issues"
   },
